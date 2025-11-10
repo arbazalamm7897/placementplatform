@@ -1,21 +1,32 @@
 import { useState } from "react";
-import { login } from "../services/api"; // Axios login service
+import { login } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     try {
-      const { data } = await login({ email, password }); // Call backend
-      localStorage.setItem("token", data.token); // Store JWT
-      localStorage.setItem("user", JSON.stringify(data.user)); // Store user info
-      navigate("/dashboard"); // Redirect to dashboard after login
+      const { data } = await login({ email, password });
+      console.log("Login response:", data); // debug
+
+      if (!data.token || !data.user) {
+        setError(data.message || "Invalid response from server");
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      navigate("/student/dashboard"); // redirect to dashboard
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      setError(err.response?.data?.message || err.message || "Something went wrong");
     }
   };
 
@@ -23,6 +34,13 @@ const LoginPage = () => {
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-300 via-blue-200 to-purple-300">
       <div className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg w-96">
         <h2 className="text-3xl font-bold text-center text-green-600 mb-6">Login</h2>
+
+        {error && (
+          <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-center">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <input
             type="email"
