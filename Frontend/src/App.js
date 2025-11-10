@@ -10,17 +10,25 @@ import CoreSubjects from "./pages/CoreSubjects";
 import Aptitude from "./pages/Aptitude";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
 
+// Core Subjects Pages
+import DBMS from "./pages/DBMS";
+import OperatingSystem from "./pages/OperatingSystem";
+import ComputerNetworks from "./pages/ComputerNetworks";
+import DSA from "./pages/DSA";
+import SoftwareEngineering from "./pages/SoftwareEngineering";
+import OOPs from "./pages/OOPs";
+import SystemDesign from "./pages/SystemDesign";
+import ComputerFundamentals from "./pages/ComputerFundamentals";
+
 function App() {
   return (
     <Router>
       <Navbar />
       <Routes>
-        {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
 
-        {/* Protected Student Dashboard */}
         <Route
           path="/student/dashboard"
           element={
@@ -30,11 +38,26 @@ function App() {
           }
         />
 
-        {/* Placement Prep */}
         <Route path="/placement-prep" element={<PlacementPrep />} />
         <Route path="/placement-prep/core-subjects" element={<CoreSubjects />} />
         <Route path="/placement-prep/aptitude" element={<Aptitude />} />
         <Route path="/placement-prep/resume-analyzer" element={<ResumeAnalyzer />} />
+
+        {/* Core Subjects Individual Pages */}
+        <Route path="/placement-prep/core-subjects/dbms" element={<DBMS />} />
+        <Route path="/placement-prep/core-subjects/os" element={<OperatingSystem />} />
+        <Route path="/placement-prep/core-subjects/cn" element={<ComputerNetworks />} />
+        <Route path="/placement-prep/core-subjects/dsa" element={<DSA />} />
+        <Route path="/placement-prep/core-subjects/se" element={<SoftwareEngineering />} />
+        <Route path="/placement-prep/core-subjects/oops" element={<OOPs />} />
+        <Route path="/placement-prep/core-subjects/system-design" element={<SystemDesign />} />
+        <Route path="/placement-prep/core-subjects/fundamentals" element={<ComputerFundamentals />} />
+
+        {/* Optional: Aptitude Subsections (if implemented) */}
+        <Route path="/placement-prep/aptitude/quantitative" element={<div>Quantitative Aptitude</div>} />
+        <Route path="/placement-prep/aptitude/logical" element={<div>Logical Reasoning</div>} />
+        <Route path="/placement-prep/aptitude/verbal" element={<div>Verbal Ability</div>} />
+        <Route path="/placement-prep/aptitude/data-interpretation" element={<div>Data Interpretation</div>} />
       </Routes>
     </Router>
   );
