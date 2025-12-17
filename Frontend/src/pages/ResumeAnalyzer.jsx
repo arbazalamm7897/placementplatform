@@ -10,26 +10,6 @@ const ResumeAnalyzer = () => {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     setResume(file);
-    if (file) {
-      // Simulated AI feedback
-      setTimeout(() => {
-        setScore(8.4);
-        setFeedback([
-          {
-            title: "Add measurable impact",
-            desc: "Use quantifiable results in your projects (e.g., 'Improved API response time by 30%').",
-          },
-          {
-            title: "Include technical keywords",
-            desc: "Mention skills like React, Node.js, MongoDB, and Express for software development roles.",
-          },
-          {
-            title: "Formatting",
-            desc: "Ensure consistent spacing and use one professional font throughout.",
-          },
-        ]);
-      }, 1500);
-    }
   };
 
   const handleDownloadPDF = () => {
@@ -105,6 +85,31 @@ const ResumeAnalyzer = () => {
     doc.save("Resume_Report.pdf");
   };
 
+const analyzeResumeWithAI = async () => {
+  if (!resume) return;
+
+  const formData = new FormData();
+  formData.append("resume", resume);
+
+  try {
+    const res = await fetch("http://localhost:5000/api/resume/analyze", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    // 🔥 REAL AI RESPONSE
+    setScore(data.score);
+    setFeedback(data.feedback);
+
+  } catch (error) {
+    console.error("AI Resume Analysis Failed", error);
+  }
+};
+
+
+
   return (
     <div className="min-h-screen bg-gray-50 pt-24 px-6">
       <div className="max-w-5xl mx-auto text-center">
@@ -139,9 +144,12 @@ const ResumeAnalyzer = () => {
             <div className="text-center space-y-4">
               <FileText className="w-14 h-14 text-green-600 mx-auto" />
               <p className="text-gray-700 font-medium">{resume.name}</p>
-              <p className="text-sm text-gray-500">
-                Analyzing your resume... (mock data for demo)
-              </p>
+              <button
+  onClick={analyzeResumeWithAI}
+  className="mt-4 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg"
+>
+  Analyze Resume with AI
+</button>
             </div>
           )}
         </div>

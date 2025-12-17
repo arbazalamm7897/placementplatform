@@ -20,6 +20,9 @@ import OOPs from "./pages/OOPs";
 import SystemDesign from "./pages/SystemDesign";
 import ComputerFundamentals from "./pages/ComputerFundamentals";
 
+import AIInterviewHome from "./pages/AIInterviewHome";
+import InterviewSession from "./pages/InterviewSession";
+
 function App() {
   return (
     <Router>
@@ -58,6 +61,10 @@ function App() {
         <Route path="/placement-prep/aptitude/logical" element={<div>Logical Reasoning</div>} />
         <Route path="/placement-prep/aptitude/verbal" element={<div>Verbal Ability</div>} />
         <Route path="/placement-prep/aptitude/data-interpretation" element={<div>Data Interpretation</div>} />
+
+        <Route path="/ai-interview" element={<AIInterviewHome />} />
+        <Route path="/ai-interview/session/:id" element={<InterviewSession />} />
+
       </Routes>
     </Router>
   );
