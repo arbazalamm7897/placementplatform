@@ -6,7 +6,6 @@ const startInterview = async () => {
     formData.append("resume", file);
     formData.append("userId", "123");
 
-    // ✅ Correct backend URL
     const res = await fetch("http://localhost:5000/api/interview/start", {
       method: "POST",
       body: formData,
