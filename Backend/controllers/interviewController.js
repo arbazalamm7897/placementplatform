@@ -1,62 +1,40 @@
 import pdfParse from "pdf-parse";
 import InterviewSession from "../models/InterviewSession.js";
-import InterviewQuestion from "../models/InterviewQuestion.js";
-import { extractSkills } from "../utils/extractSkills.js";
+import generateInterviewQuestions from "../utils/generateInterviewQuestions.js";
 
 /**
  * STEP 1: Upload Resume & Start Interview
  */
-export const uploadResumeAndStartInterview = async (req, res) => {
+export const startInterview = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ error: "Resume not uploaded" });
-    }
+    if (!req.file) return res.status(400).json({ error: "Resume not uploaded" });
 
     const pdfData = await pdfParse(req.file.buffer);
+    const resumeText = pdfData.text;
 
-    // Extract skills from resume
-    const skills = extractSkills(pdfData.text);
-
-    // Fetch skill-based questions
-   let questions = await InterviewQuestion.find({
-  skill: { $in: skills }
-});
-
-// fallback if no skill-based questions
-if (questions.length === 0) {
-  questions = await InterviewQuestion.find({ skill: "general" });
-}
-
-// absolute fallback (last safety)
-if (questions.length === 0) {
-  questions = [
-    { question: "Tell me about yourself" },
-    { question: "What are your strengths?" },
-    { question: "Why should we hire you?" },
-    { question: "Explain one project from your resume" }
-  ];
-}
-
-
-    // Fallback questions (important)
-    if (questions.length === 0) {
-      questions = await InterviewQuestion.find({ skill: "general" });
+    // Generate questions using AI or fallback
+    let questions;
+    try {
+      questions = await generateInterviewQuestions(resumeText);
+    } catch (err) {
+      console.error("AI generation failed, using fallback questions:", err);
+      questions = [
+        "Tell me about yourself",
+        "Explain one project from your resume",
+        "What are your strengths?"
+      ];
     }
 
     // Create interview session
     const session = await InterviewSession.create({
       userId: req.body.userId,
-      resumeText: pdfData.text,
-      questions: questions.map(q => q.question),
-      currentIndex: 0,
+      resumeText,
+      questions,
       answers: [],
+      currentQuestionIndex: 0,
     });
 
-    res.status(200).json({
-      sessionId: session._id,
-      message: "Interview started",
-    });
-
+    res.status(200).json({ success: true, sessionId: session._id });
   } catch (err) {
     console.error("Start Interview Error:", err);
     res.status(500).json({ error: "Failed to start interview" });
@@ -69,19 +47,14 @@ if (questions.length === 0) {
 export const getNextQuestion = async (req, res) => {
   try {
     const session = await InterviewSession.findById(req.params.id);
+    if (!session) return res.status(404).json({ error: "Session not found" });
 
-    if (!session) {
-      return res.status(404).json({ error: "Session not found" });
-    }
-
-    if (session.currentIndex >= session.questions.length) {
+    if (session.currentQuestionIndex >= session.questions.length)
       return res.json({ done: true });
-    }
 
-    const question = session.questions[session.currentIndex];
-    res.json({ question });
-
+    res.json({ question: session.questions[session.currentQuestionIndex] });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to fetch question" });
   }
 };
@@ -93,22 +66,19 @@ export const submitAnswer = async (req, res) => {
   try {
     const { answer } = req.body;
     const session = await InterviewSession.findById(req.params.id);
-
-    if (!session) {
-      return res.status(404).json({ error: "Session not found" });
-    }
+    if (!session) return res.status(404).json({ error: "Session not found" });
 
     session.answers.push({
-      question: session.questions[session.currentIndex],
+      question: session.questions[session.currentQuestionIndex],
       answer,
     });
 
-    session.currentIndex += 1;
+    session.currentQuestionIndex += 1;
     await session.save();
 
     res.json({ success: true });
-
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to submit answer" });
   }
 };

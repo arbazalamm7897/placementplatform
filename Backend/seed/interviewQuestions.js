@@ -1,30 +1,34 @@
-import dotenv from "dotenv";
-dotenv.config();
+// Backend/seed/interviewQuestions.js
 
-import Groq from "groq-sdk";
+export default function generateInterviewQuestions(profile) {
+  const questions = [];
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+  // Warm-up
+  questions.push("Tell me about yourself");
+  questions.push("Walk me through your resume");
 
-async function generateInterviewQuestions(resumeText) {
-  const prompt = `
-You are an interview expert.
-Based on the following resume, generate:
-- 3 technical questions
-- 2 project-based questions
-- 2 behavioral questions
-
-Resume:
-${resumeText}
-`;
-
-  const response = await groq.chat.completions.create({
-    model: "llama-3.1-8b-instant",
-    messages: [{ role: "user", content: prompt }],
+  // Skill-based
+  profile.skills.forEach(skill => {
+    questions.push(`Explain ${skill} and where you used it`);
+    questions.push(`What challenges did you face while working with ${skill}?`);
   });
 
-  return response.choices[0].message.content;
-}
+  // Projects
+  if (profile.hasProjects) {
+    questions.push("Explain your most challenging project");
+    questions.push("How did you handle errors in your project?");
+  }
 
-export default generateInterviewQuestions;
+  // Internship / Experience
+  if (profile.hasInternship || profile.hasExperience) {
+    questions.push("Describe your role in your internship or job");
+    questions.push("What real-world problem did you solve?");
+  }
+
+  // Behavioral
+  questions.push("What is your biggest strength?");
+  questions.push("Where do you see yourself in 5 years?");
+  questions.push("Why should we hire you?");
+
+  return questions.slice(0, 15);
+}
