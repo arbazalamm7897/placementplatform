@@ -1,14 +1,18 @@
 import express from "express";
-import multer from "multer";
-import { uploadResumeAndStartInterview } from "../controllers/interviewController.js";
+import generateInterviewQuestions from "../seed/interviewQuestions.js"; // default export
 
 const router = express.Router();
-const upload = multer();
 
-router.post(
-  "/upload-resume",
-  upload.single("resume"),
-  uploadResumeAndStartInterview
-);
+router.post("/generate", async (req, res) => {
+  try {
+    const { resumeText } = req.body;
+    const questions = await generateInterviewQuestions(resumeText);
+
+    res.json({ success: true, questions });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Interview generation failed" });
+  }
+});
 
 export default router;
