@@ -3,82 +3,85 @@ import InterviewSession from "../models/InterviewSession.js";
 import generateInterviewQuestions from "../utils/generateInterviewQuestions.js";
 
 /**
- * STEP 1: Upload Resume & Start Interview
+ * START INTERVIEW
  */
 export const startInterview = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: "Resume not uploaded" });
+    if (!req.file) {
+      return res.status(400).json({ error: "Resume not uploaded" });
+    }
 
     const pdfData = await pdfParse(req.file.buffer);
     const resumeText = pdfData.text;
 
-    // Generate questions using AI or fallback
-    let questions;
-    try {
-      questions = await generateInterviewQuestions(resumeText);
-    } catch (err) {
-      console.error("AI generation failed, using fallback questions:", err);
-      questions = [
-        "Tell me about yourself",
-        "Explain one project from your resume",
-        "What are your strengths?"
-      ];
-    }
+    let questions = await generateInterviewQuestions(resumeText);
 
-    // Create interview session
+    console.log("✅ QUESTIONS GENERATED FROM AI:", questions);
+
     const session = await InterviewSession.create({
       userId: req.body.userId,
       resumeText,
       questions,
+      currentIndex: 0, // 🔥 IMPORTANT
       answers: [],
-      currentQuestionIndex: 0,
     });
 
-    res.status(200).json({ success: true, sessionId: session._id });
+    res.json({ sessionId: session._id });
   } catch (err) {
-    console.error("Start Interview Error:", err);
+    console.error("Start interview error:", err);
     res.status(500).json({ error: "Failed to start interview" });
   }
 };
 
 /**
- * STEP 2: Get Next Question
+ * GET NEXT QUESTION
  */
 export const getNextQuestion = async (req, res) => {
   try {
     const session = await InterviewSession.findById(req.params.id);
-    if (!session) return res.status(404).json({ error: "Session not found" });
 
-    if (session.currentQuestionIndex >= session.questions.length)
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
+
+    if (session.currentIndex >= session.questions.length) {
       return res.json({ done: true });
+    }
 
-    res.json({ question: session.questions[session.currentQuestionIndex] });
+    const question = session.questions[session.currentIndex];
+
+    console.log("➡️ Sending question:", question);
+
+    res.json({ question });
   } catch (err) {
-    console.error(err);
+    console.error("Get question error:", err);
     res.status(500).json({ error: "Failed to fetch question" });
   }
 };
 
 /**
- * STEP 3: Submit Answer
+ * SUBMIT ANSWER
  */
 export const submitAnswer = async (req, res) => {
   try {
     const { answer } = req.body;
     const session = await InterviewSession.findById(req.params.id);
-    if (!session) return res.status(404).json({ error: "Session not found" });
+
+    if (!session) {
+      return res.status(404).json({ error: "Session not found" });
+    }
 
     session.answers.push({
-      question: session.questions[session.currentQuestionIndex],
+      question: session.questions[session.currentIndex],
       answer,
     });
 
-    session.currentQuestionIndex += 1;
+    session.currentIndex += 1; // 🔥 IMPORTANT
     await session.save();
 
     res.json({ success: true });
   } catch (err) {
-    console.error(err);
+    console.error("Submit answer error:", err);
     res.status(500).json({ error: "Failed to submit answer" });
   }
 };
