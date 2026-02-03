@@ -1,17 +1,27 @@
 import express from "express";
 import multer from "multer";
-import { startInterview, getNextQuestion, submitAnswer } from "../controllers/interviewController.js";
+import InterviewSession from "../models/InterviewSession.js";
+import {
+  startInterview,
+  getNextQuestion,
+  submitAnswer,
+} from "../controllers/interviewController.js";
 
 const router = express.Router();
-const upload = multer({ storage: multer.memoryStorage() }); // store PDF in memory
+const upload = multer({ storage: multer.memoryStorage() });
 
-// Start interview (upload resume & generate questions)
 router.post("/start", upload.single("resume"), startInterview);
-
-// Get next question
 router.get("/question/:id", getNextQuestion);
-
-// Submit answer
 router.post("/answer/:id", submitAnswer);
+
+router.get("/feedback/:id", async (req, res) => {
+  const session = await InterviewSession.findById(req.params.id);
+  if (!session) return res.status(404).json({ error: "Session not found" });
+
+  res.json({
+    feedback: session.feedback,
+    score: session.score,
+  });
+});
 
 export default router;

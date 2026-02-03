@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import Groq from "groq-sdk";
 
 const groq = new Groq({
@@ -8,25 +11,29 @@ export default async function generateInterviewFeedback(questions, answers) {
   const prompt = `
 You are a senior technical interviewer.
 
-Based on the following interview:
-
 Questions:
-${questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}
+${questions.join("\n")}
 
-Answers:
-${answers.map((a, i) => `${i + 1}. ${a}`).join("\n")}
+Candidate Answers:
+${answers.map((a, i) => `${i + 1}. ${a.answer}`).join("\n")}
 
 Give:
-1. Overall score out of 10
-2. Technical strengths
+1. Short overall feedback (5–6 lines)
+2. Strengths
 3. Areas of improvement
-4. Final hiring recommendation (Yes / Maybe / No)
+4. Final score out of 10
+
+Respond strictly in JSON:
+{
+  "feedback": "text",
+  "score": number
+}
 `;
 
-  const res = await groq.chat.completions.create({
+  const response = await groq.chat.completions.create({
     model: "llama-3.1-8b-instant",
     messages: [{ role: "user", content: prompt }],
   });
 
-  return res.choices[0].message.content;
+  return JSON.parse(response.choices[0].message.content);
 }

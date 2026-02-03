@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 const InterviewSession = () => {
   const { id } = useParams();
-  const navigate = useNavigate(); // ✅ correct
+  const navigate = useNavigate();
 
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
@@ -26,15 +26,13 @@ const InterviewSession = () => {
         return;
       }
 
-      // ⏳ simulate interviewer thinking
       setTimeout(() => {
         setQuestion(data.question);
         setThinking(false);
         setLoading(false);
-      }, 2000);
+      }, 1500);
     } catch (err) {
-      console.error("❌ Fetch question failed:", err);
-      alert("Failed to load question");
+      console.error("Fetch question failed:", err);
     }
   };
 
@@ -42,35 +40,28 @@ const InterviewSession = () => {
     fetchQuestion();
   }, []);
 
-  // ✅ HANDLE NAVIGATION SAFELY
+  // 🔥 THIS IS THE FIX
   useEffect(() => {
     if (finished) {
-      navigate(`/ai-interview/feedback/${id}`);
+      // small delay to ensure DB save
+      setTimeout(() => {
+        navigate(`/ai-interview/feedback/${id}`);
+      }, 1000);
     }
   }, [finished, navigate, id]);
 
   const submitAnswer = async () => {
-    if (!answer.trim()) {
-      alert("Please answer first");
-      return;
-    }
+    if (!answer.trim()) return alert("Please answer first");
 
-    try {
-      await fetch(
-        `http://localhost:5000/api/interview/answer/${id}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ answer }),
-        }
-      );
+    await fetch(`http://localhost:5000/api/interview/answer/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answer }),
+    });
 
-      setAnswer("");
-      setLoading(true);
-      fetchQuestion();
-    } catch (err) {
-      console.error("❌ Submit answer failed:", err);
-    }
+    setAnswer("");
+    setLoading(true);
+    fetchQuestion();
   };
 
   if (loading) {
@@ -87,11 +78,11 @@ const InterviewSession = () => {
         <h2 className="text-xl font-semibold mb-4">🤖 AI Interviewer</h2>
 
         {thinking ? (
-          <p className="text-gray-500 italic mb-4">
-            AI is preparing the next question...
+          <p className="italic text-gray-500">
+            AI is preparing feedback...
           </p>
         ) : (
-          <p className="mb-4 font-medium text-gray-800">{question}</p>
+          <p className="font-medium mb-4">{question}</p>
         )}
 
         {!thinking && (
@@ -100,13 +91,12 @@ const InterviewSession = () => {
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               rows="4"
-              placeholder="Type your answer here..."
               className="w-full border rounded-lg p-3 mb-4"
             />
 
             <button
               onClick={submitAnswer}
-              className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+              className="w-full bg-blue-600 text-white py-2 rounded-lg"
             >
               Submit Answer
             </button>
