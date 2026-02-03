@@ -1,6 +1,7 @@
 import pdfParse from "pdf-parse";
 import InterviewSession from "../models/InterviewSession.js";
 import generateInterviewQuestions from "../utils/generateInterviewQuestions.js";
+import generateInterviewFeedback from "../utils/generateInterviewFeedback.js";
 
 /**
  * START INTERVIEW
@@ -14,7 +15,7 @@ export const startInterview = async (req, res) => {
     const pdfData = await pdfParse(req.file.buffer);
     const resumeText = pdfData.text;
 
-    let questions = await generateInterviewQuestions(resumeText);
+    const questions = await generateInterviewQuestions(resumeText);
 
     console.log("✅ QUESTIONS GENERATED FROM AI:", questions);
 
@@ -22,13 +23,14 @@ export const startInterview = async (req, res) => {
       userId: req.body.userId,
       resumeText,
       questions,
-      currentIndex: 0, // 🔥 IMPORTANT
+      currentIndex: 0,
       answers: [],
+      feedback: null,
     });
 
     res.json({ sessionId: session._id });
   } catch (err) {
-    console.error("Start interview error:", err);
+    console.error("❌ Start interview error:", err);
     res.status(500).json({ error: "Failed to start interview" });
   }
 };
@@ -49,12 +51,11 @@ export const getNextQuestion = async (req, res) => {
     }
 
     const question = session.questions[session.currentIndex];
-
     console.log("➡️ Sending question:", question);
 
     res.json({ question });
   } catch (err) {
-    console.error("Get question error:", err);
+    console.error("❌ Get question error:", err);
     res.status(500).json({ error: "Failed to fetch question" });
   }
 };
@@ -71,17 +72,33 @@ export const submitAnswer = async (req, res) => {
       return res.status(404).json({ error: "Session not found" });
     }
 
+    // Save answer
     session.answers.push({
       question: session.questions[session.currentIndex],
       answer,
     });
 
-    session.currentIndex += 1; // 🔥 IMPORTANT
-    await session.save();
+    session.currentIndex += 1;
 
+    // 🔥 IF INTERVIEW FINISHED → GENERATE FEEDBACK
+    if (session.currentIndex >= session.questions.length) {
+      console.log("🧠 Generating AI feedback...");
+
+      const feedback = await generateInterviewFeedback(
+        session.questions,
+        session.answers.map(a => a.answer)
+      );
+
+      session.feedback = feedback;
+      await session.save();
+
+      return res.json({ done: true });
+    }
+
+    await session.save();
     res.json({ success: true });
   } catch (err) {
-    console.error("Submit answer error:", err);
+    console.error("❌ Submit answer error:", err);
     res.status(500).json({ error: "Failed to submit answer" });
   }
 };
