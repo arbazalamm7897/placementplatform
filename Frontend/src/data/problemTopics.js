@@ -1,0 +1,30 @@
+export const dsaTopicMap = {
+  "two-sum": "Arrays & Hashing",
+  "valid-parentheses": "Stack",
+  "contains-duplicate": "Arrays & Hashing",
+  "best-time-to-buy-and-sell-stock": "Sliding Window",
+  "valid-anagram": "Strings",
+  "maximum-subarray": "Greedy",
+  "longest-substring-without-repeating": "Sliding Window",
+  "product-of-array-except-self": "Prefix / Suffix",
+  "binary-search": "Binary Search",
+  "container-with-most-water": "Two Pointers",
+  "top-k-frequent-elements": "Heap / Hashing",
+  "three-sum": "Two Pointers",
+  "merge-k-sorted-lists": "Heap / Merge",
+  "trapping-rain-water": "Two Pointers",
+  "first-missing-positive": "Arrays",
+  "largest-rectangle-in-histogram": "Stack",
+};
+
+export const sqlTopicMap = {
+  "top-earners": "SELECT & WHERE",
+  "design-team-list": "SELECT & WHERE",
+  "high-scoring-students": "SELECT & WHERE",
+  "department-count": "GROUP BY",
+  "city-wise-student-count": "GROUP BY",
+  "delivered-orders-count": "GROUP BY",
+  "second-highest-salary": "Subquery",
+  "second-highest-order-amount": "Subquery",
+  "second-highest-student-score": "Subquery",
+};

@@ -41,7 +41,21 @@ const SubjectPage = ({ subjectName, intro, topics }) => {
             className="bg-white rounded-3xl shadow-lg p-6"
           >
             <h2 className="text-2xl font-semibold text-green-700 mb-2">{t.title}</h2>
-            <p className="text-gray-700">{t.content}</p>
+            {t.content && <p className="text-gray-700 mb-4">{t.content}</p>}
+
+            {t.points?.length > 0 && (
+              <ul className="space-y-2 text-gray-700 list-disc pl-5">
+                {t.points.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            )}
+
+            {t.interviewFocus && (
+              <div className="mt-4 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-900">
+                <span className="font-semibold">Interview Focus:</span> {t.interviewFocus}
+              </div>
+            )}
           </section>
         ))}
       </main>

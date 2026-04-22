@@ -9,6 +9,8 @@ import PlacementPrep from "./pages/PlacementPrep";
 import CoreSubjects from "./pages/CoreSubjects";
 import Aptitude from "./pages/Aptitude";
 import ResumeAnalyzer from "./pages/ResumeAnalyzer";
+import AptitudeSectionPage from "./pages/AptitudeSectionPage";
+import AptitudeMockTest from "./pages/AptitudeMockTest";
 
 // Core Subjects Pages
 import DBMS from "./pages/DBMS";
@@ -23,6 +25,12 @@ import ComputerFundamentals from "./pages/ComputerFundamentals";
 import AIInterviewHome from "./pages/AIInterviewHome";
 import InterviewSession from "./pages/InterviewSession";
 import InterviewFeedback from "./pages/InterviewFeedback";
+import CodingPracticeHome from "./pages/CodingPracticeHome";
+import DsaPractice from "./pages/DsaPractice";
+import DsaSolve from "./pages/DsaSolve";
+import SqlPractice from "./pages/SqlPractice";
+import SqlSolve from "./pages/SqlSolve";
+import ProgressAnalytics from "./pages/ProgressAnalytics";
 
 function App() {
   return (
@@ -74,29 +82,23 @@ function App() {
           path="/placement-prep/core-subjects/fundamentals"
           element={<ComputerFundamentals />}
         />
-        {/* Optional: Aptitude Subsections (if implemented) */}
         <Route
-          path="/placement-prep/aptitude/quantitative"
-          element={<div>Quantitative Aptitude</div>}
+          path="/placement-prep/aptitude/mock-test"
+          element={<AptitudeMockTest />}
         />
-        <Route
-          path="/placement-prep/aptitude/logical"
-          element={<div>Logical Reasoning</div>}
-        />
-        <Route
-          path="/placement-prep/aptitude/verbal"
-          element={<div>Verbal Ability</div>}
-        />
-        <Route
-          path="/placement-prep/aptitude/data-interpretation"
-          element={<div>Data Interpretation</div>}
-        />
+        <Route path="/placement-prep/aptitude/:section" element={<AptitudeSectionPage />} />
+        <Route path="/coding-practice" element={<CodingPracticeHome />} />
+        <Route path="/coding-practice/dsa" element={<DsaPractice />} />
+        <Route path="/coding-practice/dsa/:id" element={<DsaSolve />} />
+        <Route path="/coding-practice/sql" element={<SqlPractice />} />
+        <Route path="/coding-practice/sql/:id" element={<SqlSolve />} />
+        <Route path="/progress" element={<ProgressAnalytics />} />
         <Route path="/ai-interview" element={<AIInterviewHome />} />
         <Route
           path="/ai-interview/session/:id"
           element={<InterviewSession />}
         />
-        //feedback
+        {/* Feedback */}
         <Route
           path="/ai-interview/feedback/:id"
           element={<InterviewFeedback />}

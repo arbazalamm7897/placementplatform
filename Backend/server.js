@@ -6,6 +6,8 @@ import authRoutes from "./routes/auth.js";
 import resumeRoutes from "./routes/resumeRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import interviewRoutes from "./routes/interviewRoutes.js";
+import codingRoutes from "./routes/codingRoutes.js";
+import progressRoutes from "./routes/progressRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -29,6 +31,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/interview", interviewRoutes);
 app.use("/api/resume", resumeRoutes);
+app.use("/api/coding", codingRoutes);
+app.use("/api/progress", progressRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;

@@ -14,12 +14,6 @@ const StudentDashboard = () => {
     }
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
-
   const modules = [
     {
       name: "Placement Prep",

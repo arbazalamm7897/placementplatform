@@ -26,11 +26,22 @@ const interviewSessionSchema = new mongoose.Schema(
       {
         question: String,
         answer: String,
+        feedback: {
+          summary: String,
+          strengths: [String],
+          improvement: String,
+          score: Number,
+        },
       },
     ],
 
     feedback: {
-      type: String,
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+
+    score: {
+      type: Number,
       default: null,
     },
   },
