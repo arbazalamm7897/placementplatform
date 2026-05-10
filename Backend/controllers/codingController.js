@@ -5,6 +5,8 @@ import vm from "vm";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import { getDsaProblemById } from "../data/dsaProblems.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import { createError } from "../utils/appError.js";
 
 const execFileAsync = promisify(execFile);
 const SUPPORTED_LANGUAGES = new Set(["javascript", "java"]);
@@ -178,25 +180,30 @@ const runJavaSolution = async (problem, code) => {
   }
 };
 
-export const runDsaCode = async (req, res) => {
+export const runDsaCode = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { code, language } = req.body;
   const normalizedLanguage = String(language || "").toLowerCase();
   const problem = getDsaProblemById(id);
 
   if (!problem) {
-    return res.status(404).json({ error: "Problem not found" });
-  }
-
-  if (!SUPPORTED_LANGUAGES.has(normalizedLanguage)) {
-    return res.status(400).json({
-      error:
-        "This judge currently supports JavaScript and Java execution. You can still use the editor templates for other languages.",
+    throw createError("Problem not found", 404, {
+      code: "PROBLEM_NOT_FOUND",
     });
   }
 
+  if (!SUPPORTED_LANGUAGES.has(normalizedLanguage)) {
+    throw createError(
+      "This judge currently supports JavaScript and Java execution. You can still use the editor templates for other languages.",
+      400,
+      { code: "UNSUPPORTED_LANGUAGE" }
+    );
+  }
+
   if (!code?.trim()) {
-    return res.status(400).json({ error: "Code is required" });
+    throw createError("Code is required", 400, {
+      code: "CODE_REQUIRED",
+    });
   }
 
   try {
@@ -215,9 +222,9 @@ export const runDsaCode = async (req, res) => {
       results,
     });
   } catch (error) {
-    res.status(400).json({
-      error: "Code execution failed",
+    throw createError("Code execution failed", 400, {
+      code: "CODE_EXECUTION_FAILED",
       details: error.stderr || error.message,
     });
   }
-};
+});

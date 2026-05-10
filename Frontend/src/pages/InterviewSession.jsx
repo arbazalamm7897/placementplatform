@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { LoaderCircle, Mic, Volume2 } from "lucide-react";
+import { Mic, Send, Volume2 } from "lucide-react";
 import {
+  getApiErrorMessage,
   getInterviewQuestion,
   submitInterviewAnswer as submitInterviewAnswerRequest,
 } from "../services/api";
@@ -149,7 +150,7 @@ const InterviewSession = () => {
       phaseRef.current = "asking";
     } catch (err) {
       console.error("Fetch question failed:", err);
-      setError(err.message || "Could not fetch question");
+      setError(getApiErrorMessage(err, "Could not fetch question"));
       setPhase("error");
       phaseRef.current = "error";
     }
@@ -185,9 +186,7 @@ const InterviewSession = () => {
       } catch (err) {
         console.error("Submit answer failed:", err);
         isSubmittingRef.current = false;
-        setError(
-          err.response?.data?.error || err.message || "Could not submit answer"
-        );
+        setError(getApiErrorMessage(err, "Could not submit answer"));
         setPhase("error");
         phaseRef.current = "error";
       }
@@ -205,7 +204,6 @@ const InterviewSession = () => {
     }
 
     setError("");
-    setAnswer("");
     setCanRetryListening(false);
     currentTranscriptRef.current = "";
     setPhase("listening");
@@ -224,7 +222,6 @@ const InterviewSession = () => {
             return;
           }
 
-          setError("Listening could not start yet. Try listening again.");
           setCanRetryListening(true);
           setPhase("listening");
           phaseRef.current = "listening";
@@ -280,6 +277,19 @@ const InterviewSession = () => {
   useEffect(() => {
     phaseRef.current = phase;
   }, [phase]);
+
+  useEffect(() => {
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -345,7 +355,7 @@ const InterviewSession = () => {
         }
 
         if (event.error === "no-speech") {
-          setError("I didn’t catch that. Please speak again.");
+          setError("I didn't catch that. Please speak again.");
           setCanRetryListening(true);
           setPhase("listening");
           phaseRef.current = "listening";
@@ -367,7 +377,9 @@ const InterviewSession = () => {
           return;
         }
 
-        setError(`Voice recognition issue: ${event.error}. Please try listening again.`);
+        setError(
+          `Voice recognition issue: ${event.error}. Please try listening again.`
+        );
         setCanRetryListening(true);
         setPhase("listening");
         phaseRef.current = "listening";
@@ -436,141 +448,186 @@ const InterviewSession = () => {
     });
   }, [phase, question, questionIndex, speakText, startThinkingPause]);
 
-  const listeningIndicator = (
-    <div className="flex items-center justify-center gap-2">
-      <span className="h-3 w-3 rounded-full bg-green-500 animate-pulse" />
-      <span className="h-3 w-3 rounded-full bg-green-500 animate-pulse [animation-delay:150ms]" />
-      <span className="h-3 w-3 rounded-full bg-green-500 animate-pulse [animation-delay:300ms]" />
-    </div>
+  const replayQuestion = () => {
+    if (!question) {
+      return;
+    }
+
+    speakText(`Question ${questionIndex || 1}. ${question}`);
+  };
+
+  const statusToneClass =
+    phase === "listening"
+      ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100"
+      : phase === "thinking"
+        ? "border-amber-300/20 bg-amber-400/10 text-amber-100"
+        : phase === "error"
+          ? "border-rose-300/20 bg-rose-400/10 text-rose-100"
+          : "border-cyan-300/20 bg-cyan-400/10 text-cyan-100";
+
+  const progressWidth = Math.max(
+    totalQuestions ? Math.round((questionIndex / totalQuestions) * 100) : 12,
+    12
   );
 
+  const botMessage =
+    phase === "loading"
+      ? "Generating next question..."
+      : phase === "processing"
+        ? "Analyzing your answer..."
+        : question || "Waiting for the first question...";
+
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="max-w-3xl mx-auto mt-16 rounded-3xl bg-white p-8 shadow-xl">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">AI Interviewer</h2>
-            <p className="text-gray-600">
-              Question {questionIndex || 1}
-              {totalQuestions ? ` of ${totalQuestions}` : ""}
-            </p>
-          </div>
+    <div className="page-shell overflow-hidden px-3 pb-3 pt-20 sm:px-4 sm:pt-24">
+      <div className="page-content">
+        <section
+          className="glass-panel relative overflow-hidden rounded-[30px] p-3 sm:p-4"
+          style={{ height: "calc(100dvh - 6.25rem)" }}
+        >
+          <div className="absolute -right-10 top-6 h-40 w-40 rounded-full bg-cyan-400/15 blur-3xl" />
+          <div className="absolute left-0 top-0 h-32 w-32 rounded-full bg-sky-400/10 blur-3xl" />
 
-          <div className="flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 text-green-700">
-            <Volume2 className="h-4 w-4" />
-            <span className="text-sm font-medium">
-              {speechEnabled ? "Voice enabled" : "Text mode"}
-            </span>
-          </div>
-        </div>
-
-        {error && (
-          <div className="mb-5 rounded-2xl bg-red-100 px-4 py-3 text-red-700">
-            {error}
-          </div>
-        )}
-
-        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 transition-all duration-300">
-          <p className="mb-2 text-sm uppercase tracking-wide text-gray-500">
-            Current question
-          </p>
-          <p className="text-lg font-medium text-gray-900">
-            {question || "Preparing your interview..."}
-          </p>
-        </div>
-
-        <div className="mt-6 rounded-3xl border border-green-100 bg-green-50 p-6 transition-all duration-300">
-          {phase === "loading" && (
-            <p className="text-green-800">Preparing your interview...</p>
-          )}
-
-          {phase === "asking" && (
-            <div className="flex items-center gap-3 text-green-900">
-              <Volume2 className="h-5 w-5" />
-              <p className="font-medium">The bot is asking the question.</p>
-            </div>
-          )}
-
-          {phase === "thinking" && (
-            <div className="space-y-3 text-center">
-              <p className="font-medium text-green-900">Hold and think...</p>
-              <p className="text-green-700">
-                Listening will start in {countdown} seconds.
-              </p>
-            </div>
-          )}
-
-          {phase === "listening" && (
-            <div className="space-y-4 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-white text-green-600 shadow-sm">
-                <Mic className="h-6 w-6" />
+          <div className="relative flex h-full flex-col gap-3">
+            {error ? (
+              <div className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-2 text-sm text-rose-100">
+                {error}
               </div>
-              {listeningIndicator}
-              <p className="font-medium text-green-900">
-                Listening to your answer...
-              </p>
-              {canRetryListening && (
-                <button
-                  onClick={beginListening}
-                  className="rounded-xl bg-green-600 px-5 py-3 text-white"
-                >
-                  Try Listening Again
-                </button>
-              )}
+            ) : null}
+
+            <div className="grid min-h-0 flex-1 gap-0 overflow-hidden rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(9,16,30,0.68),rgba(8,14,24,0.58))] lg:grid-cols-2">
+              <section className="flex min-h-0 flex-col border-r border-white/10 p-5">
+                <div className="flex items-start justify-between gap-3 border-b border-white/10 pb-4">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">
+                      AI Interviewer
+                    </p>
+                    <h2 className="mt-2 font-['Space_Grotesk'] text-[2rem] font-bold tracking-tight text-white">
+                      AI Interviewer-Bot
+                    </h2>
+                  </div>
+                  <button
+                    onClick={replayQuestion}
+                    disabled={!question}
+                    className="secondary-button gap-2 px-4 py-2 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <Volume2 className="h-4 w-4" />
+                    Replay
+                  </button>
+                </div>
+
+                <div className="mt-4 flex min-h-0 flex-1 flex-col gap-4">
+                  <div className="relative flex h-[190px] flex-none items-center justify-center rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_50%_35%,rgba(56,189,248,0.18),transparent_42%),linear-gradient(180deg,rgba(10,20,36,0.95),rgba(7,14,26,0.92))] shadow-[0_24px_65px_rgba(2,6,23,0.32)]">
+                    <div className="absolute right-5 top-5">
+                      <span className={`rounded-full border px-3 py-1 text-xs font-medium ${statusToneClass}`}>
+                        {phase === "thinking" ? `${countdown}s` : phase}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="relative h-24 w-24 rounded-full border border-white/10 bg-[radial-gradient(circle_at_50%_32%,rgba(255,255,255,0.2),rgba(51,65,85,0.95))] shadow-[0_20px_45px_rgba(15,23,42,0.45)]">
+                        <div className="absolute left-5 top-8 h-3 w-3 rounded-full bg-cyan-100 shadow-[0_0_18px_rgba(207,250,254,0.85)]" />
+                        <div className="absolute right-5 top-8 h-3 w-3 rounded-full bg-cyan-100 shadow-[0_0_18px_rgba(207,250,254,0.85)]" />
+                        <div
+                          className={`absolute left-1/2 top-[62%] -translate-x-1/2 rounded-full bg-cyan-200 transition-all duration-300 ${
+                            phase === "asking"
+                              ? "h-3 w-9 animate-pulse"
+                              : phase === "listening"
+                                ? "h-2 w-7"
+                                : phase === "processing" || phase === "loading"
+                                  ? "h-1.5 w-5"
+                                  : "h-1 w-4"
+                          }`}
+                        />
+                      </div>
+                      <div className="mt-4 flex h-16 w-32 items-start justify-center rounded-t-[38px] border border-white/10 border-b-0 bg-[linear-gradient(180deg,rgba(56,189,248,0.14),rgba(15,23,42,0.24))] pt-3.5">
+                        <div className="h-7 w-16 rounded-full border border-cyan-100/10 bg-cyan-200/10" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="surface-muted relative px-5 py-5">
+                    <div className="absolute left-1/2 top-0 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rotate-45 border-l border-t border-cyan-300/30 bg-[rgba(20,36,61,0.96)]" />
+                    <p className="text-[1.05rem] leading-8 text-slate-100">
+                      {botMessage}
+                    </p>
+                  </div>
+
+                  <div className="surface-muted px-4 py-3">
+                    <div className="mb-2 flex items-center justify-between text-xs uppercase tracking-[0.24em] text-slate-400">
+                      <span>Interview Progress</span>
+                      <span>
+                        Question {questionIndex || 1}
+                        {totalQuestions ? ` / ${totalQuestions}` : ""}
+                      </span>
+                    </div>
+                    <div className="h-4 overflow-hidden rounded-full p-1">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-400 transition-all duration-700"
+                        style={{ width: `${progressWidth}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="flex min-h-0 flex-col p-5">
+                <div className="border-b border-white/10 pb-4">
+                  <p className="text-[11px] uppercase tracking-[0.32em] text-slate-500">
+                    Candidate
+                  </p>
+                  <h2 className="mt-2 font-['Space_Grotesk'] text-[2rem] font-bold tracking-tight text-white">
+                    Candidate
+                  </h2>
+                </div>
+
+                <div className="mt-4 flex min-h-0 flex-1 flex-col gap-4">
+                  <div className="relative flex items-center justify-center py-2">
+                    <button
+                      onClick={recognitionEnabled ? beginListening : enableMicrophoneAndContinue}
+                      disabled={phase === "processing" || permissionPending}
+                      className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-cyan-300/30 bg-gradient-to-b from-cyan-300 to-sky-400 text-slate-950 shadow-[0_14px_28px_rgba(56,189,248,0.24)] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <Mic className="h-5 w-5" />
+                    </button>
+                    {phase === "listening" ? (
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                        <div className="h-16 w-16 animate-ping rounded-full border border-emerald-300/20 bg-emerald-300/5" />
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="flex min-h-0 flex-1 flex-col rounded-[30px] border border-white/10 bg-slate-950/35 p-5 shadow-[0_22px_55px_rgba(2,6,23,0.2)]">
+                    <textarea
+                      value={answer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      placeholder={
+                        recognitionEnabled
+                          ? "Type your answer here or use the microphone..."
+                          : "Type your answer here..."
+                      }
+                      className="input-shell min-h-0 flex-1 resize-none text-[1.02rem] leading-7"
+                    />
+
+                    <div className="mt-4 flex items-center justify-between gap-3">
+                      <div className="text-sm text-slate-400">
+                        {canRetryListening
+                          ? "Voice input stopped. You can retry."
+                          : "Edit your answer if needed, then submit."}
+                      </div>
+                      <button
+                        onClick={() => submitAnswer(answer)}
+                        disabled={!answer.trim() || phase === "processing" || phase === "loading"}
+                        className="primary-button gap-2 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <Send className="h-4 w-4" />
+                        Submit
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
-          )}
-
-          {phase === "processing" && (
-            <div className="space-y-4 text-center">
-              <LoaderCircle className="mx-auto h-7 w-7 animate-spin text-green-600" />
-              <p className="font-medium text-green-900">
-                Processing your answer and moving to the next question...
-              </p>
-            </div>
-          )}
-
-          {phase === "error" && (
-            <div className="space-y-3 text-center">
-              <p className="text-green-900">
-                Microphone permission is needed to continue this interview.
-              </p>
-              <button
-                onClick={enableMicrophoneAndContinue}
-                disabled={permissionPending}
-                className="rounded-xl bg-green-600 px-5 py-3 text-white disabled:opacity-60"
-              >
-                {permissionPending ? "Enabling Microphone..." : "Enable Microphone"}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-5">
-          <p className="mb-3 text-sm text-gray-500">
-            Your spoken answer will appear here.
-          </p>
-          <textarea
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            rows="6"
-            placeholder={
-              recognitionEnabled
-                ? "Start speaking when the listening animation appears..."
-                : "Voice recognition is unavailable, so type your answer here..."
-            }
-            className="w-full rounded-2xl border border-gray-300 p-4 focus:outline-none focus:ring-2 focus:ring-green-400"
-          />
-
-          {!recognitionEnabled && (
-            <button
-              onClick={() => submitAnswer(answer)}
-              disabled={!answer.trim() || phase === "processing"}
-              className="mt-4 rounded-xl bg-green-600 px-6 py-3 text-white disabled:opacity-60"
-            >
-              Submit Answer
-            </button>
-          )}
-        </div>
+          </div>
+        </section>
       </div>
     </div>
   );

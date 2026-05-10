@@ -38,7 +38,7 @@ const formatActivity = (item) => {
   if (Object.prototype.hasOwnProperty.call(item, "problemId")) {
     return {
       title: `${item.track} Practice`,
-      detail: `${item.title} • ${item.passed ? "Solved" : "Attempted"} • ${item.difficulty}`,
+      detail: `${item.title} - ${item.passed ? "Solved" : "Attempted"} - ${item.difficulty}`,
       accent: "text-violet-700 bg-violet-50",
       icon: Code2,
     };
@@ -178,7 +178,7 @@ const ProgressAnalytics = () => {
             {
               label: "Solved Problems",
               value: snapshot.totals.solvedDsa + snapshot.totals.solvedSql,
-              detail: `${snapshot.totals.solvedDsa} DSA • ${snapshot.totals.solvedSql} SQL`,
+              detail: `${snapshot.totals.solvedDsa} DSA - ${snapshot.totals.solvedSql} SQL`,
               icon: Code2,
               tone: "bg-sky-50",
             },
@@ -344,9 +344,12 @@ const ProgressAnalytics = () => {
               {snapshot.recentActivity.map((item) => {
                 const activity = formatActivity(item);
                 const Icon = activity.icon;
+                const activityKey =
+                  item.id ||
+                  `${activity.title}-${item.problemId || item.fileName || item.interviewId || item.createdAt}`;
 
                 return (
-                  <div key={item.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                  <div key={activityKey} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
                     <div
                       className={`inline-flex rounded-2xl p-3 ${activity.accent}`}
                     >

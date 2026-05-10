@@ -1,42 +1,81 @@
 import React from "react";
+import {
+  ArrowRight,
+  Bot,
+  BriefcaseBusiness,
+  ChartNoAxesCombined,
+  ShieldCheck,
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
 const LandingPage = () => {
+  const highlights = [
+    {
+      icon: Bot,
+      title: "AI-guided preparation",
+      detail: "Mock interviews, resume scoring, and feedback loops tuned for placement success.",
+    },
+    {
+      icon: ChartNoAxesCombined,
+      title: "Actionable analytics",
+      detail: "Track your momentum, practice depth, and improvement patterns in one command center.",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Structured workflows",
+      detail: "One workspace for resume polish, coding rounds, aptitude training, and interview readiness.",
+    },
+  ];
+
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* ✅ Background Image with blur */}
-      <div
-        className="absolute inset-0 bg-cover bg-center scale-105 blur-sm"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1488998427799-e3362cec87c3?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1170')",
-        }}
-      ></div>
+    <div className="page-shell flex items-center">
+      <div className="page-content">
+        <div className="hero-panel animate-aurora overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(110,231,200,0.16),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(122,162,255,0.18),transparent_28%)]" />
+          <div className="relative z-10 grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+            <div>
+              <p className="section-badge">
+                <BriefcaseBusiness className="h-4 w-4" />
+                Future-ready placement OS
+              </p>
+              <h1 className="heading-xl mt-6 text-balance">
+                Modern AI prep for students who want sharper outcomes.
+              </h1>
+              <p className="body-lg mt-6 max-w-2xl text-balance">
+                Career Bridge brings interview simulation, coding practice, resume
+                intelligence, and performance analytics into one premium workflow
+                designed to feel like a modern AI SaaS platform.
+              </p>
 
-      {/* ✅ Dark transparent layer (for readability, very light) */}
-      <div className="absolute inset-0 bg-black/20"></div>
+              <div className="mt-8 flex flex-wrap gap-4">
+                <Link to="/signup" className="primary-button">
+                  Start Free
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link to="/login" className="secondary-button">
+                  Sign In
+                </Link>
+              </div>
+            </div>
 
-      {/* ✅ Content */}
-      <div className="relative z-10 text-center px-6">
-        <h1 className="text-5xl font-extrabold text-green-700 mb-4 drop-shadow-lg">
-          Welcome to Career Bridge
-        </h1>
-        <p className="text-white text-lg max-w-2xl mx-auto mb-6 drop-shadow-md">
-  A unified platform connecting students and recruiters for a smarter,
-  faster, and more transparent placement process.
-</p>
-        <div className="space-x-4">
-          <a
-            href="/login"
-            className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow-lg transition"
-          >
-            Login
-          </a>
-          <a
-            href="/signup"
-            className="px-6 py-3 bg-transparent border border-green-600 text-green-700 hover:bg-green-600 hover:text-white rounded-lg font-semibold transition"
-          >
-            Signup
-          </a>
+            <div className="grid gap-5">
+              {highlights.map(({ icon: Icon, title, detail }, index) => (
+                <div
+                  key={title}
+                  className={`feature-card group animate-float-soft ${index === 1 ? "sm:ml-10" : ""}`}
+                  style={{ animationDelay: `${index * 0.45}s` }}
+                >
+                  <div className="icon-badge">
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="mt-5 font-['Space_Grotesk'] text-2xl font-bold text-white">
+                    {title}
+                  </h3>
+                  <p className="body-sm mt-3">{detail}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

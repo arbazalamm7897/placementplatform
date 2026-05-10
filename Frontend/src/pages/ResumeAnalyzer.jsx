@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { UploadCloud, FileText, Star, AlertCircle } from "lucide-react";
 import jsPDF from "jspdf";
-import { analyzeResume as analyzeResumeRequest } from "../services/api";
+import {
+  analyzeResume as analyzeResumeRequest,
+  getApiErrorMessage,
+} from "../services/api";
 import { recordResumeAnalysis } from "../utils/progressTracker";
 
 const ResumeAnalyzer = () => {
@@ -100,38 +103,34 @@ const ResumeAnalyzer = () => {
       });
     } catch (err) {
       console.error("AI Resume Analysis Failed", err);
-      setError(
-        err.response?.data?.error ||
-          err.response?.data?.details ||
-          err.message ||
-          "AI Resume Analysis Failed"
-      );
+      setError(getApiErrorMessage(err, "AI Resume Analysis Failed"));
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 px-6">
-      <div className="max-w-5xl mx-auto text-center">
-        <h1 className="text-4xl font-bold text-green-700 mb-6">
-          Resume Analyzer
-        </h1>
-        <p className="text-gray-600 mb-12 text-lg">
-          Upload your resume and let our AI analyze it for ATS compatibility,
-          formatting, and keyword optimization.
-        </p>
+    <div className="page-shell">
+      <div className="page-content text-center">
+        <div className="hero-panel">
+          <p className="section-badge">Resume Intelligence</p>
+          <h1 className="heading-lg mt-6">Premium AI feedback for a sharper first impression.</h1>
+          <p className="body-lg mx-auto mt-4 max-w-3xl">
+            Upload your resume and let our AI analyze it for ATS compatibility,
+            formatting, and keyword optimization.
+          </p>
+        </div>
 
-        <div className="bg-gradient-to-br from-green-100 to-green-50 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition max-w-xl mx-auto">
+        <div className="glass-card mx-auto mt-8 max-w-2xl p-8 transition duration-500 hover:-translate-y-1">
           {!resume ? (
             <label
               htmlFor="resume-upload"
-              className="flex flex-col items-center justify-center cursor-pointer space-y-4"
+              className="flex cursor-pointer flex-col items-center justify-center space-y-4 rounded-[28px] border border-dashed border-cyan-300/30 bg-white/5 p-8 transition hover:border-cyan-300/50 hover:bg-white/10"
             >
-              <UploadCloud className="w-14 h-14 text-green-600" />
-              <p className="text-gray-700 font-medium">
+              <UploadCloud className="h-14 w-14 text-cyan-200" />
+              <p className="text-lg font-medium text-white">
                 Drag and drop your resume here or{" "}
-                <span className="text-green-700 underline">browse</span>
+                <span className="text-cyan-300 underline">browse</span>
               </p>
               <input
                 type="file"
@@ -143,12 +142,12 @@ const ResumeAnalyzer = () => {
             </label>
           ) : (
             <div className="text-center space-y-4">
-              <FileText className="w-14 h-14 text-green-600 mx-auto" />
-              <p className="text-gray-700 font-medium">{resume.name}</p>
+              <FileText className="mx-auto h-14 w-14 text-cyan-200" />
+              <p className="font-medium text-white">{resume.name}</p>
               <button
                 onClick={analyzeResumeWithAI}
                 disabled={isAnalyzing}
-                className="mt-4 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white px-5 py-2 rounded-lg"
+                className="primary-button mt-4"
               >
                 {isAnalyzing ? "Analyzing..." : "Analyze Resume with AI"}
               </button>
@@ -157,45 +156,40 @@ const ResumeAnalyzer = () => {
         </div>
 
         {error && (
-          <div className="mt-6 max-w-xl mx-auto rounded-xl bg-red-100 px-4 py-3 text-red-700">
+          <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
             {error}
           </div>
         )}
 
         {score !== null && (
-          <div className="mt-16">
-            <div className="bg-white rounded-3xl shadow-xl p-8 max-w-3xl mx-auto">
-              <div className="flex items-center justify-center mb-6">
-                <Star className="w-8 h-8 text-yellow-500 mr-2" />
-                <h2 className="text-2xl font-semibold text-gray-800">
+          <div className="mt-12">
+            <div className="glass-card mx-auto max-w-4xl p-8">
+              <div className="mb-6 flex items-center justify-center">
+                <Star className="mr-2 h-8 w-8 text-amber-300" />
+                <h2 className="text-2xl font-semibold text-white">
                   Resume Score:{" "}
-                  <span className="text-green-700 font-bold">{score}/10</span>
+                  <span className="font-bold text-cyan-300">{score}/10</span>
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 {feedback.map((item, idx) => (
                   <div
                     key={idx}
-                    className="bg-gradient-to-br from-green-50 to-white rounded-2xl p-5 shadow-md hover:shadow-lg transition"
+                    className="surface-muted rounded-3xl p-5 text-left transition hover:bg-white/10"
                   >
                     <div className="flex items-start gap-3">
-                      <AlertCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
-                      <div className="text-left">
-                        <h3 className="font-semibold text-gray-800 mb-1">
-                          {item.title}
-                        </h3>
-                        <p className="text-gray-600 text-sm">{item.desc}</p>
+                      <AlertCircle className="mt-1 h-6 w-6 flex-shrink-0 text-cyan-200" />
+                      <div>
+                        <h3 className="mb-1 font-semibold text-white">{item.title}</h3>
+                        <p className="text-sm text-slate-300">{item.desc}</p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <button
-                onClick={handleDownloadPDF}
-                className="mt-10 bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition"
-              >
+              <button onClick={handleDownloadPDF} className="secondary-button mt-10">
                 Download Detailed PDF Report
               </button>
             </div>

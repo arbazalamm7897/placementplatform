@@ -1,8 +1,4 @@
-import Groq from "groq-sdk";
-
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
+import { generateText } from "../utils/aiClient.js";
 
 export async function generateInterviewQuestions(resumeText) {
   const prompt = `
@@ -17,10 +13,8 @@ Resume:
 ${resumeText}
 `;
 
-  const response = await groq.chat.completions.create({
-    model: "llama-3.1-8b-instant",
-    messages: [{ role: "user", content: prompt }],
+  return generateText({
+    prompt,
+    temperature: 0.7,
   });
-
-  return response.choices[0].message.content;
 }

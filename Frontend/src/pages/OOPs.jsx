@@ -22,7 +22,7 @@ const OOPs = () => {
     {
       title: "Four Pillars of OOP",
       content:
-        "This is the most asked OOP question set in freshers’ interviews.",
+        "This is the most asked OOP question set in freshers' interviews.",
       points: [
         "Encapsulation binds data and methods together and restricts direct access.",
         "Abstraction hides implementation details and shows only essential behavior.",

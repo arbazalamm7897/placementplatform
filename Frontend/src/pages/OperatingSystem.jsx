@@ -69,7 +69,7 @@ const OperatingSystem = () => {
         "Deadlock occurs when a set of processes waits forever for resources held by each other.",
         "Necessary conditions are mutual exclusion, hold and wait, no preemption, and circular wait.",
         "Deadlock handling approaches are prevention, avoidance, detection, and recovery.",
-        "Banker’s algorithm is used for deadlock avoidance.",
+        "Banker's algorithm is used for deadlock avoidance.",
         "Breaking any one necessary condition prevents deadlock.",
       ],
       interviewFocus:

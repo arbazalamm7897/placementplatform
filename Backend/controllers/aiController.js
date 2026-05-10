@@ -1,30 +1,21 @@
-import fetch from "node-fetch";
+import { generateText } from "../utils/aiClient.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import { createError } from "../utils/appError.js";
 
-export const askAI = async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    if (!prompt) return res.status(400).json({ error: "Prompt is required" });
-
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gemma-3-12b",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 2000,
-      }),
+export const askAI = asyncHandler(async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt) {
+    throw createError("Prompt is required", 400, {
+      code: "PROMPT_REQUIRED",
     });
-
-    const data = await response.json();
-    const answer = data.choices[0].message.content;
-
-    res.status(200).json({ answer });
-
-  } catch (error) {
-    console.error("AI Error:", error);
-    res.status(500).json({ error: "AI request failed", details: error.message });
   }
-};
+
+  const answer = await generateText({
+    prompt,
+    provider: "openrouter",
+    temperature: 0.4,
+    maxTokens: 2000,
+  });
+
+  res.status(200).json({ answer });
+});

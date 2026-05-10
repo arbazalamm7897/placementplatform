@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Briefcase, Code, Mic, BarChart } from "lucide-react";
+import { ArrowRight, BarChart, Briefcase, Code, Mic } from "lucide-react";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -18,67 +18,79 @@ const StudentDashboard = () => {
     {
       name: "Placement Prep",
       desc: "Core subjects, aptitude, and resume analyzer for placements.",
-      icon: <Briefcase className="w-10 h-10 text-blue-600" />,
+      icon: <Briefcase className="h-10 w-10 text-cyan-200" />,
       path: "/placement-prep",
       img: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80",
     },
     {
       name: "Coding & SQL Practice",
       desc: "Structured DSA sheets and SQL questions with AI guidance.",
-      icon: <Code className="w-10 h-10 text-purple-600" />,
+      icon: <Code className="h-10 w-10 text-cyan-200" />,
       path: "/coding-practice",
       img: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80",
     },
     {
       name: "AI Interview Assistant",
       desc: "Mock interviews with real-time AI feedback and evaluation.",
-      icon: <Mic className="w-10 h-10 text-pink-600" />,
+      icon: <Mic className="h-10 w-10 text-cyan-200" />,
       path: "/ai-interview",
       img: "https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=800&q=80",
     },
     {
       name: "Progress & Analytics",
-      desc: "Track scores, performance, and earn achievements & badges.",
-      icon: <BarChart className="w-10 h-10 text-yellow-600" />,
+      desc: "Track scores, performance, and earn achievements and badges.",
+      icon: <BarChart className="h-10 w-10 text-cyan-200" />,
       path: "/progress",
       img: "https://images.unsplash.com/photo-1556761175-4b46a572b786?auto=format&fit=crop&w=1000&q=80",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-24 relative">
+    <div className="page-shell">
+      <div className="page-content">
+        <div className="hero-panel">
+          <p className="section-badge">Student Workspace</p>
+          <h1 className="heading-lg mt-6 text-balance">
+            Welcome back, {userName ? userName : "Student"}.
+          </h1>
+          <p className="body-lg mt-4 max-w-3xl">
+            Move through your preparation stack with one clean workflow for
+            interviews, coding rounds, resume optimization, and performance tracking.
+          </p>
+        </div>
 
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold text-green-700 mb-12 text-center">
-          Welcome, {userName ? userName : "Student"} 👋
-        </h1>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
+        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
           {modules.map((m) => (
             <div
               key={m.name}
               onClick={() => navigate(m.path)}
-              className="relative rounded-3xl overflow-hidden shadow-lg transform transition hover:scale-105 cursor-pointer group"
+              className="feature-card group cursor-pointer"
             >
-              {/* Background Image */}
               <img
                 src={m.img}
                 alt={m.name}
-                className="absolute inset-0 w-full h-full object-cover brightness-75 group-hover:brightness-90 transition"
+                className="absolute inset-0 h-full w-full object-cover opacity-25 transition duration-500 group-hover:scale-105 group-hover:opacity-35"
               />
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-950/75 via-slate-950/60 to-cyan-950/45" />
 
-              {/* Overlay */}
-              <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition"></div>
-
-              {/* Content */}
-              <div className="relative p-6 flex flex-col justify-end h-64 text-white">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="bg-white/90 p-3 rounded-full shadow-inner">
-                    {m.icon}
-                  </div>
-                  <h2 className="text-2xl font-semibold drop-shadow-md">{m.name}</h2>
+              <div className="relative flex min-h-[280px] flex-col justify-between">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="icon-badge">{m.icon}</div>
+                  <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+                    Explore
+                  </span>
                 </div>
-                <p className="text-sm text-gray-100">{m.desc}</p>
+
+                <div>
+                  <h2 className="font-['Space_Grotesk'] text-3xl font-bold text-white">
+                    {m.name}
+                  </h2>
+                  <p className="body-sm mt-3 max-w-md text-slate-300">{m.desc}</p>
+                  <span className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-cyan-200 transition group-hover:text-white">
+                    Open workspace
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                </div>
               </div>
             </div>
           ))}

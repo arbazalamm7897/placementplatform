@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mic, Upload } from "lucide-react";
-import { startInterview as startInterviewRequest } from "../services/api";
+import {
+  getApiErrorMessage,
+  startInterview as startInterviewRequest,
+} from "../services/api";
 
 const AIInterviewHome = () => {
   const [file, setFile] = useState(null);
@@ -41,44 +44,42 @@ const AIInterviewHome = () => {
 
       const formData = new FormData();
       formData.append("resume", file);
-      const storedUser = localStorage.getItem("user");
-      const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-      formData.append("userId", parsedUser?._id || parsedUser?.id || "guest-user");
 
       const { data } = await startInterviewRequest(formData);
 
       navigate(`/ai-interview/session/${data.sessionId}`);
     } catch (err) {
       console.error(err);
-      setError(
-        err.response?.data?.error ||
-          err.message ||
-          "Microphone permission or backend access failed"
-      );
+      setError(getApiErrorMessage(err, "Microphone permission or backend access failed"));
     } finally {
       setIsStarting(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="bg-white rounded-3xl shadow-xl p-8 w-full max-w-xl">
+    <div className="page-shell flex items-center justify-center px-4 pb-6 pt-24 sm:px-6 sm:pt-28">
+      <div className="glass-card w-full max-w-2xl p-6 sm:p-8">
         <div className="flex items-center justify-center gap-3 mb-3">
-          <Mic className="w-8 h-8 text-green-600" />
-          <h2 className="text-2xl font-bold text-center">
+          <span className="icon-badge">
+            <Mic className="h-6 w-6" />
+          </span>
+          <h2 className="heading-lg text-center text-[2rem] sm:text-[2.4rem]">
             AI Interview Assistant
           </h2>
         </div>
 
-        <p className="text-center text-gray-600 mb-6">
+        <p className="body-lg mb-6 text-center">
           Upload your resume to begin a voice-guided mock interview with spoken
           questions, listening, and quick feedback after every answer.
         </p>
 
-        <label className="flex flex-col items-center justify-center border-2 border-dashed border-green-500 rounded-2xl p-6 cursor-pointer">
-          <Upload className="w-10 h-10 text-green-600 mb-2" />
-          <span className="text-green-700 text-center">
+        <label className="surface-muted flex min-h-[210px] cursor-pointer flex-col items-center justify-center rounded-[28px] border border-dashed border-cyan-300/30 p-6 text-center transition hover:border-cyan-300/50 hover:bg-white/10 sm:min-h-[230px]">
+          <Upload className="mb-3 h-10 w-10 text-cyan-200" />
+          <span className="text-lg font-semibold text-white">
             {file ? file.name : "Click to upload resume (PDF)"}
+          </span>
+          <span className="mt-2 text-sm text-slate-400">
+            A polished resume helps the AI tailor questions more accurately.
           </span>
           <input
             type="file"
@@ -91,14 +92,14 @@ const AIInterviewHome = () => {
           />
         </label>
 
-        <div className="mt-4 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-900">
+        <div className="surface-muted mt-4 px-4 py-3 text-sm text-slate-300">
           {speechSupported
             ? "Voice features are available in this browser."
             : "Voice recognition is not fully available in this browser, so you can still type answers manually."}
         </div>
 
         {error && (
-          <div className="mt-4 rounded-2xl bg-red-100 px-4 py-3 text-red-700">
+          <div className="mt-4 rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
             {error}
           </div>
         )}
@@ -106,7 +107,7 @@ const AIInterviewHome = () => {
         <button
           onClick={startInterview}
           disabled={isStarting}
-          className="w-full mt-6 bg-green-600 text-white py-3 rounded-xl disabled:opacity-60"
+          className="primary-button mt-6 w-full"
         >
           {isStarting ? "Starting..." : "Start Interview"}
         </button>

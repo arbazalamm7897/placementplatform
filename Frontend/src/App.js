@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -33,9 +34,21 @@ import SqlSolve from "./pages/SqlSolve";
 import ProgressAnalytics from "./pages/ProgressAnalytics";
 
 function App() {
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    document.body.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
+  };
+
   return (
     <Router>
-      <Navbar />
+      <Navbar theme={theme} onToggleTheme={toggleTheme} />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -93,15 +106,29 @@ function App() {
         <Route path="/coding-practice/sql" element={<SqlPractice />} />
         <Route path="/coding-practice/sql/:id" element={<SqlSolve />} />
         <Route path="/progress" element={<ProgressAnalytics />} />
-        <Route path="/ai-interview" element={<AIInterviewHome />} />
+        <Route
+          path="/ai-interview"
+          element={
+            <PrivateRoute>
+              <AIInterviewHome />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/ai-interview/session/:id"
-          element={<InterviewSession />}
+          element={
+            <PrivateRoute>
+              <InterviewSession />
+            </PrivateRoute>
+          }
         />
-        {/* Feedback */}
         <Route
           path="/ai-interview/feedback/:id"
-          element={<InterviewFeedback />}
+          element={
+            <PrivateRoute>
+              <InterviewFeedback />
+            </PrivateRoute>
+          }
         />
       </Routes>
     </Router>

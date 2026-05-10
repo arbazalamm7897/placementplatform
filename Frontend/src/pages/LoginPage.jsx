@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { login } from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ArrowRight, Bot, ShieldCheck } from "lucide-react";
+import { getApiErrorMessage, login } from "../services/api";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = location.state?.message || "";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,7 +17,6 @@ const LoginPage = () => {
 
     try {
       const { data } = await login({ email, password });
-      console.log("Login response:", data); // debug
 
       if (!data.token || !data.user) {
         setError(data.message || "Invalid response from server");
@@ -24,52 +26,116 @@ const LoginPage = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      navigate("/student/dashboard"); // redirect to dashboard
+      navigate("/student/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Something went wrong");
+      setError(getApiErrorMessage(err, "Something went wrong"));
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-green-300 via-blue-200 to-purple-300">
-      <div className="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-lg w-96">
-        <h2 className="text-3xl font-bold text-center text-green-600 mb-6">Login</h2>
+    <div className="page-shell flex items-center justify-center px-4 pb-6 pt-24 sm:px-6 sm:pt-28">
+      <div className="page-content flex w-full max-w-5xl items-center justify-center">
+        <div className="glass-card grid w-full max-w-4xl overflow-hidden lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="relative hidden min-h-full overflow-hidden border-r border-white/10 bg-white/[0.03] p-8 lg:block xl:p-10">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(167,139,250,0.18),transparent_28%)]" />
+            <div className="relative z-10 flex h-full flex-col justify-between">
+              <div>
+                <span className="section-badge">Welcome Back</span>
+                <h1 className="heading-lg mt-6 max-w-md text-balance">
+                  Practice smarter and return exactly where you left off.
+                </h1>
+                <p className="body-lg mt-4 max-w-md">
+                  Log in to continue your coding practice, resume prep, and AI
+                  interview sessions from one place.
+                </p>
+              </div>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-center">
-            {error}
+              <div className="grid gap-4">
+                <div className="surface-muted flex items-start gap-4 p-4">
+                  <span className="icon-badge h-12 w-12 shrink-0 rounded-2xl">
+                    <Bot className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h2 className="text-base font-semibold text-white">
+                      AI-powered preparation
+                    </h2>
+                    <p className="body-sm mt-1">
+                      Keep your interview, aptitude, and coding practice aligned
+                      in one focused workspace.
+                    </p>
+                  </div>
+                </div>
+                <div className="surface-muted flex items-start gap-4 p-4">
+                  <span className="icon-badge h-12 w-12 shrink-0 rounded-2xl">
+                    <ShieldCheck className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h2 className="text-base font-semibold text-white">
+                      Secure account access
+                    </h2>
+                    <p className="body-sm mt-1">
+                      Your saved progress and personalized sessions stay ready
+                      every time you come back.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-400"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-400"
-          />
-          <button
-            type="submit"
-            className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition"
-          >
-            Login
-          </button>
-        </form>
+          <div className="p-6 sm:p-8 lg:p-10">
+            <div className="mx-auto w-full max-w-md">
+              <span className="section-badge">Login</span>
+              <h2 className="heading-lg mt-5">Sign in to your account</h2>
+              <p className="body-sm mt-3">
+                Enter your credentials and continue your placement preparation.
+              </p>
 
-        <p className="text-center text-gray-600 mt-4">
-          Don’t have an account?{" "}
-          <a href="/signup" className="text-green-600 font-semibold hover:underline">
-            Sign up
-          </a>
-        </p>
+              {error && (
+                <div className="mt-5 rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+                  {error}
+                </div>
+              )}
+
+              {successMessage && !error && (
+                <div className="mt-5 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+                  {successMessage}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="input-shell"
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="input-shell"
+                />
+                <button type="submit" className="primary-button w-full gap-2">
+                  Login
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </form>
+
+              <p className="mt-5 text-center text-sm text-slate-400">
+                Don&apos;t have an account?{" "}
+                <Link
+                  to="/signup"
+                  className="font-semibold text-cyan-200 transition hover:text-white"
+                >
+                  Create one
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

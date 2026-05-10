@@ -1,4 +1,6 @@
 import UserProgress from "../models/UserProgress.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import { createError } from "../utils/appError.js";
 
 const LIMIT = 80;
 
@@ -192,83 +194,75 @@ const getOrCreateProgress = async (userId) => {
   return progress;
 };
 
-export const getProgress = async (req, res) => {
-  try {
-    const progress = await getOrCreateProgress(req.user.id);
-    const snapshot = buildSnapshot(progress);
-    const achievements = buildAchievements(snapshot);
+export const getProgress = asyncHandler(async (req, res) => {
+  const progress = await getOrCreateProgress(req.user.id);
+  const snapshot = buildSnapshot(progress);
+  const achievements = buildAchievements(snapshot);
 
-    res.json({
-      snapshot,
-      achievements,
-      streak: progress.streak,
+  res.json({
+    snapshot,
+    achievements,
+    streak: progress.streak,
+  });
+});
+
+export const trackProgressEvent = asyncHandler(async (req, res) => {
+  const { type, payload } = req.body;
+  const progress = await getOrCreateProgress(req.user.id);
+
+  if (!type || !payload || typeof payload !== "object") {
+    throw createError("type and payload are required", 400, {
+      code: "PROGRESS_PAYLOAD_REQUIRED",
     });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to load progress" });
   }
-};
 
-export const trackProgressEvent = async (req, res) => {
-  try {
-    const { type, payload } = req.body;
-    const progress = await getOrCreateProgress(req.user.id);
+  const entry = {
+    ...payload,
+    createdAt: new Date(),
+  };
 
-    if (!type || !payload || typeof payload !== "object") {
-      return res.status(400).json({ error: "type and payload are required" });
-    }
-
-    const entry = {
-      ...payload,
-      createdAt: new Date(),
-    };
-
-    switch (type) {
-      case "resume":
-        progress.resumeAnalyses.push(entry);
-        progress.resumeAnalyses = progress.resumeAnalyses.slice(-LIMIT);
-        break;
-      case "aptitude":
-        progress.aptitudeAttempts.push(entry);
-        progress.aptitudeAttempts = progress.aptitudeAttempts.slice(-LIMIT);
-        break;
-      case "coding":
-        progress.codingAttempts.push(entry);
-        progress.codingAttempts = progress.codingAttempts.slice(-LIMIT);
-        break;
-      case "interview":
-        progress.interviewAttempts.push(entry);
-        progress.interviewAttempts = progress.interviewAttempts.slice(-LIMIT);
-        break;
-      default:
-        return res.status(400).json({ error: "Unsupported progress type" });
-    }
-
-    updateStreak(progress);
-    await progress.save();
-
-    const snapshot = buildSnapshot(progress);
-    const achievements = buildAchievements(snapshot);
-
-    res.json({
-      success: true,
-      snapshot,
-      achievements,
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to save progress" });
+  switch (type) {
+    case "resume":
+      progress.resumeAnalyses.push(entry);
+      progress.resumeAnalyses = progress.resumeAnalyses.slice(-LIMIT);
+      break;
+    case "aptitude":
+      progress.aptitudeAttempts.push(entry);
+      progress.aptitudeAttempts = progress.aptitudeAttempts.slice(-LIMIT);
+      break;
+    case "coding":
+      progress.codingAttempts.push(entry);
+      progress.codingAttempts = progress.codingAttempts.slice(-LIMIT);
+      break;
+    case "interview":
+      progress.interviewAttempts.push(entry);
+      progress.interviewAttempts = progress.interviewAttempts.slice(-LIMIT);
+      break;
+    default:
+      throw createError("Unsupported progress type", 400, {
+        code: "UNSUPPORTED_PROGRESS_TYPE",
+      });
   }
-};
 
-export const resetProgress = async (req, res) => {
-  try {
-    await UserProgress.findOneAndUpdate(
-      { userId: req.user.id },
-      createEmptyProgress(req.user.id),
-      { upsert: true, new: true, overwrite: true }
-    );
+  updateStreak(progress);
+  await progress.save();
 
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to reset progress" });
-  }
-};
+  const snapshot = buildSnapshot(progress);
+  const achievements = buildAchievements(snapshot);
+
+  res.json({
+    success: true,
+    snapshot,
+    achievements,
+  });
+});
+
+export const resetProgress = asyncHandler(async (req, res) => {
+  await UserProgress.findOneAndUpdate(
+    { userId: req.user.id },
+    createEmptyProgress(req.user.id),
+    { upsert: true, new: true, overwrite: true }
+  );
+
+  res.json({ success: true });
+});

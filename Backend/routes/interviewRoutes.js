@@ -1,6 +1,9 @@
 import express from "express";
 import multer from "multer";
 import InterviewSession from "../models/InterviewSession.js";
+import auth from "../middleware/auth.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import { createError } from "../utils/appError.js";
 import {
   startInterview,
   getNextQuestion,
@@ -10,18 +13,28 @@ import {
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
+router.use(auth);
+
 router.post("/start", upload.single("resume"), startInterview);
 router.get("/question/:id", getNextQuestion);
 router.post("/answer/:id", submitAnswer);
 
-router.get("/feedback/:id", async (req, res) => {
-  const session = await InterviewSession.findById(req.params.id);
-  if (!session) return res.status(404).json({ error: "Session not found" });
+router.get("/feedback/:id", asyncHandler(async (req, res) => {
+  const session = await InterviewSession.findOne({
+    _id: req.params.id,
+    userId: req.user.id,
+  });
+
+  if (!session) {
+    throw createError("Interview session not found", 404, {
+      code: "INTERVIEW_SESSION_NOT_FOUND",
+    });
+  }
 
   res.json({
     feedback: session.feedback,
     score: session.score,
   });
-});
+}));
 
 export default router;

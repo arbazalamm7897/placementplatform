@@ -14,7 +14,7 @@ const ComputerFundamentals = () => {
         "Computers work internally in binary.",
         "Hexadecimal is used because it is compact and maps neatly to binary.",
         "Practice decimal-binary-hex conversions.",
-        "Two’s complement is commonly used for representing signed integers.",
+        "Two's complement is commonly used for representing signed integers.",
       ],
       interviewFocus:
         "Be ready to convert small numbers quickly and explain why hexadecimal is practical.",

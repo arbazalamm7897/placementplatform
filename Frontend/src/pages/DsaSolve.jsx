@@ -3,7 +3,10 @@ import { Link, useParams } from "react-router-dom";
 import { CheckCircle2, CircleAlert, Play, TerminalSquare } from "lucide-react";
 import { dsaProblems } from "../data/codingPracticeData";
 import { dsaTopicMap } from "../data/problemTopics";
-import { runDsaCode as runDsaCodeRequest } from "../services/api";
+import {
+  getApiErrorMessage,
+  runDsaCode as runDsaCodeRequest,
+} from "../services/api";
 import { recordCodingAttempt } from "../utils/progressTracker";
 
 const languageOptions = [
@@ -93,12 +96,7 @@ const DsaSolve = () => {
     } catch (err) {
       setResults([]);
       setStatus(null);
-      setError(
-        err.response?.data?.details ||
-          err.response?.data?.error ||
-          err.message ||
-          "Execution failed"
-      );
+      setError(getApiErrorMessage(err, "Execution failed"));
     } finally {
       setIsRunning(false);
     }
